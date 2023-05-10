@@ -37,6 +37,28 @@ resource "aws_security_group_rule" "my_security_group_rule_egress" {
   cidr_blocks = ["0.0.0.0/0"]
 }
 
+resource "aws_security_group_rule" "my_security_group_rule_mysql" {
+  security_group_id = aws_security_group.my_security_group.id
+  type              = "ingress"
+
+  description = "MYSQL/Aurora"
+  from_port   = 3306
+  to_port     = 3306
+  protocol    = "tcp"
+  cidr_blocks = ["0.0.0.0/0"]
+}
+
+resource "aws_security_group_rule" "my_security_group_rule_wordpress" {
+  security_group_id = aws_security_group.my_security_group.id
+  type              = "ingress"
+
+  description = "Allows all http traffic on port 8080"
+  from_port   = 8080
+  to_port     = 8080
+  protocol    = "tcp"
+  cidr_blocks = ["0.0.0.0/0"]
+}
+
 resource "aws_security_group" "bastion_sg" {
   name_prefix = "bastion"
   vpc_id      = aws_vpc.my_vpc.id

@@ -8,6 +8,11 @@ resource "aws_launch_configuration" "my_launch_configuration" {
   user_data       = <<-EOF
               #!/bin/bash
               sudo yum update -y
+              sudo yum update -y
+              sudo yum install httpd -y
+              sudo echo "Hello world from $(hostname -f)" > /var/www/html/index.html
+              sudo systemctl start httpd && sudo systemctl enable httpd
+              sudo yum install -y git
               sudo yum -y install docker
               sudo service docker start
               sudo usermod -a -G docker ec2-user
@@ -17,13 +22,12 @@ resource "aws_launch_configuration" "my_launch_configuration" {
               sudo yum install amazon-efs-utils -y
               sudo systemctl start efs && sudo systemctl enable efs
               sudo mkdir /efs
-              sudo mount -t nfs4 -o nfsvers=4.1,rsize=1048576,wsize=1048576,hard,timeo=600,retrans=2,noresvport ${aws_efs_mount_target.efs_mount_target_a.ip}:/ /efs
+              cd /
+              sudo mount -t nfs4 -o nfsvers=4.1,rsize=1048576,wsize=1048576,hard,timeo=600,retrans=2,noresvport ${aws_efs_mount_target.efs_mount_target_a.ip_address}:/ /efs
               sudo echo 'AllowUsers ec2-user'
-              sudo echo '${aws_efs_file_system.efs.id}:/ /efs efs defaults,_netdev 0 0' | sudo tee -a /etc/fstab
-
+              sudo echo ${aws_efs_mount_target.efs_mount_target_a.ip_address}:/ /efs nfs4 nfsvers=4.1,rsize=1048576,wsize=1048576,hard,timeo=600,retrans=2,_netdev 0 0 | sudo tee -a /etc/fstab
               EOF
 }
-
 resource "aws_autoscaling_group" "my_autoscaling_group" {
   launch_configuration = aws_launch_configuration.my_launch_configuration.id
   name                 = "my_autoscaling_group"
